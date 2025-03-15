@@ -1,0 +1,193 @@
+from pymongo import MongoClient
+
+client = MongoClient("mongodb+srv://aluno:aluno@banconosql.tasb3.mongodb.net/?retryWrites=true&w=majority&appName=BancoNoSQL")
+
+db = client["mydb"]
+
+# Criando as coleções com validação de esquema
+
+db.create_collection("Alimentacao", validator={
+    "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["id_coelho", "tipo_racao", "quantia"],
+        "properties": {
+            "id_coelho": {"bsonType": "objectId"},
+            "tipo_racao": {"bsonType": "string"},
+            "quantia": {"bsonType": "int"},
+            "suplemento": {"bsonType": "string"}
+        }
+    }
+})
+
+db.create_collection("Coelho", validator={
+    "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["idade", "nome", "genero", "raca", "filiacao"],
+        "properties": {
+            "idade": {"bsonType": "int"},
+            "nome": {"bsonType": "string"},
+            "genero": {"bsonType": "string"},
+            "raca": {"bsonType": "string"},
+            "filiacao": {"bsonType": "string"},
+            "funcao": {"bsonType": "string"}
+        }
+    }
+})
+
+db.create_collection("Historico_Medico", validator={
+    "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["tipo_ocorrencia", "data_diagnostico", "tratamento_aplicado", "veterinario_resp", "status_tratamento"],
+        "properties": {
+            "tipo_ocorrencia": {"bsonType": "string"},
+            "data_diagnostico": {"bsonType": "date"},
+            "tratamento_aplicado": {"bsonType": "string"},
+            "veterinario_resp": {"bsonType": "string"},
+            "status_tratamento": {"bsonType": "string"}
+        }
+    }
+})
+
+db.create_collection("Destino", validator={
+    "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["id_coelho", "data_destino", "destino"],
+        "properties": {
+            "id_coelho": {"bsonType": "objectId"},
+            "data_destino": {"bsonType": "date"},
+            "destino": {"bsonType": "string"},
+            "descarte": {"bsonType": "string"}
+        }
+    }
+})
+
+db.create_collection("Raca", validator={
+    "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["caracteristicas", "nome_raca"],
+        "properties": {
+            "caracteristicas": {"bsonType": "string"},
+            "nome_raca": {"bsonType": "string"}
+        }
+    }
+})
+
+db.create_collection("Coelho_Femea", validator={
+    "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["id_coelho", "lactante", "gestacao", "resguardo"],
+        "properties": {
+            "id_coelho": {"bsonType": "objectId"},
+            "lactante": {"bsonType": "string"},
+            "gestacao": {"bsonType": "string"},
+            "resguardo": {"bsonType": "string"}
+        }
+    }
+})
+
+db.create_collection("Coelho_Macho", validator={
+    "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["id_coelho", "cruzamento", "num_filhos"],
+        "properties": {
+            "id_coelho": {"bsonType": "objectId"},
+            "cruzamento": {"bsonType": "int"},
+            "num_filhos": {"bsonType": "int"}
+        }
+    }
+})
+
+db.create_collection("Ninhada", validator={
+    "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["data_cobertura", "status_reproducao"],
+        "properties": {
+            "data_cobertura": {"bsonType": "date"},
+            "status_reproducao": {"bsonType": "string"},
+            "coelho_macho": {"bsonType": "objectId"},
+            "coelho_femea": {"bsonType": "objectId"}
+        }
+    }
+})
+
+db.create_collection("Filho", validator={
+    "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["id_coelho", "peso_desmame", "peso_nascimento"],
+        "properties": {
+            "id_ninhada": {"bsonType": "objectId"},
+            "id_coelho": {"bsonType": "objectId"},
+            "peso_desmame": {"bsonType": "double"},
+            "peso_abate": {"bsonType": "double"},
+            "data_abate": {"bsonType": "date"},
+            "peso_nascimento": {"bsonType": "double"}
+        }
+    }
+})
+
+db.create_collection("Gaiolas", validator={
+    "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["localizacao", "capacidade", "status"],
+        "properties": {
+            "localizacao": {"bsonType": "string"},
+            "capacidade": {"bsonType": "int"},
+            "status": {"bsonType": "bool"}
+        }
+    }
+})
+
+db.create_collection("Insumos", validator={
+    "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["nome", "quant_dispo", "tipo"],
+        "properties": {
+            "nome": {"bsonType": "string"},
+            "quant_dispo": {"bsonType": "int"},
+            "tipo": {"bsonType": "string"}
+        }
+    }
+})
+
+db.create_collection("Remedio", validator={
+    "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["data_validade", "nome"],
+        "properties": {
+            "data_validade": {"bsonType": "date"},
+            "nome": {"bsonType": "string"}
+        }
+    }
+})
+
+db.create_collection("Galpao", validator={
+    "$jsonSchema": {
+        "bsonType": "object"}
+})
+
+db.create_collection("Funcionarios", validator={
+    "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["email", "senha", "cargo", "status", "id_galpao"],
+        "properties": {
+            "email": {"bsonType": "string"},
+            "senha": {"bsonType": "string"},
+            "cargo": {"bsonType": "string"},
+            "status": {"bsonType": "bool"},
+            "id_galpao": {"bsonType": "objectId"}
+        }
+    }
+})
+
+db.create_collection("Monitoramento", validator={
+    "$jsonSchema": {
+        "bsonType": "object",
+        "required": ["data", "hora", "descricao", "acoes_tomadas"],
+        "properties": {
+            "data": {"bsonType": "date"},
+            "hora": {"bsonType": "string"},
+            "descricao": {"bsonType": "string"},
+            "acoes_tomadas": {"bsonType": "string"}
+        }
+    }
+})
