@@ -1,9 +1,3 @@
-from pymongo import MongoClient
-
-client = MongoClient("mongodb+srv://aluno:aluno@banconosql.tasb3.mongodb.net/?retryWrites=true&w=majority&appName=BancoNoSQL")
-
-db = client["mydb"]
-
 # Criando as coleções com validação de esquema
 
 db.create_collection("Alimentacao", validator={
