@@ -1,4 +1,4 @@
-# Criando as coleções com validação de esquema
+# Coleções com validação de esquema
 
 db.create_collection("Alimentacao", validator={
     "$jsonSchema": {
