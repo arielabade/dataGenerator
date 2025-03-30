@@ -1,0 +1,328 @@
+from pymongo import MongoClient
+from bson import ObjectId
+from datetime import datetime
+
+# Conectar ao MongoDB
+client = MongoClient("mongodb+srv://aluno:aluno@banconosql.tasb3.mongodb.net/?retryWrites=true&w=majority&appName=BancoNoSQL")
+db = client["mydb"]
+
+# Funções CRUD para Coelho
+def inserir_coelho():
+    try:
+        nome = input("Nome: ")
+        idade = int(input("Idade: "))
+        genero = input("Gênero (M/F): ").upper()
+        while genero not in ['M', 'F']:
+            print("Gênero inválido! Digite M ou F.")
+            genero = input("Gênero (M/F): ").upper()
+            
+        raca = input("Raça: ")
+        filiacao = input("Filiação: ")
+        
+        coelho = {
+            "nome": nome, "idade": idade, "genero": genero,
+            "raca": raca, "filiacao": filiacao
+        }
+        resultado = db.Coelho.insert_one(coelho)
+        print(f"Coelho inserido com ID: {resultado.inserted_id}")
+    except ValueError:
+        print("Erro: Idade deve ser um número inteiro.")
+    except Exception as e:
+        print(f"Erro ao inserir coelho: {e}")
+
+def listar_coelhos():
+    try:
+        for coelho in db.Coelho.find():
+            print(f"ID: {coelho['_id']}\nNome: {coelho['nome']}\nIdade: {coelho['idade']}\nGênero: {coelho['genero']}\nFiliação: {coelho['filiacao']}\nRaça: {coelho['raca']}\n")
+    except Exception as e:
+        print(f"Erro ao listar coelhos: {e}")
+
+def atualizar_coelho():
+    try:
+        id_coelho = input("ID do coelho a atualizar: ")
+        novo_nome = input("Novo nome (deixe em branco para não alterar): ")
+        nova_idade = input("Nova idade (deixe em branco para não alterar): ")
+        nova_raca = input("Nova raça (deixe em branco para não alterar): ")
+
+        update_data = {}
+        if novo_nome: update_data["nome"] = novo_nome
+        if nova_idade: update_data["idade"] = int(nova_idade)
+        if nova_raca: update_data["raca"] = nova_raca
+
+        if update_data:
+            resultado = db.Coelho.update_one(
+                {"_id": ObjectId(id_coelho)},
+                {"$set": update_data}
+            )
+            print("Coelho atualizado!" if resultado.modified_count > 0 else "Nenhuma alteração feita.")
+        else:
+            print("Nenhum campo para atualizar.")
+    except Exception as e:
+        print(f"Erro ao atualizar coelho: {e}")
+
+def deletar_coelho():
+    try:
+        id_coelho = input("ID do coelho a deletar: ")
+        resultado = db.Coelho.delete_one({"_id": ObjectId(id_coelho)})
+        print("Coelho deletado!" if resultado.deleted_count > 0 else "Nenhum coelho encontrado.")
+    except Exception as e:
+        print(f"Erro ao deletar coelho: {e}")
+
+# Funções CRUD para Funcionário
+def inserir_funcionario():
+    try:
+        email = input("Email: ")
+        while "@" not in email:
+            print("Email inválido! Deve conter @.")
+            email = input("Email: ")
+            
+        senha = input("Senha: ")
+        cargo = input("Cargo: ")
+        status = input("Status (Ativo/Inativo): ").lower() == "ativo"
+        id_galpao = input("ID do Galpão associado: ")  # Novo campo obrigatório
+        
+        funcionario = {
+            "email": email, 
+            "senha": senha, 
+            "cargo": cargo, 
+            "status": status,
+            "id_galpao": ObjectId(id_galpao)  # Incluindo o campo obrigatório
+        }
+        resultado = db.Funcionarios.insert_one(funcionario)
+        print(f"Funcionário inserido com ID: {resultado.inserted_id}")
+    except Exception as e:
+        print(f"Erro ao inserir funcionário: {e}")
+
+def listar_funcionarios():
+    try:
+        for funcionario in db.Funcionarios.find():
+            status = "Ativo" if funcionario["status"] else "Inativo"
+            print(f"ID: {funcionario['_id']}\nEmail: {funcionario['email']}\nCargo: {funcionario['cargo']}\nStatus: {status}\n")
+    except Exception as e:
+        print(f"Erro ao listar funcionários: {e}")
+
+def atualizar_funcionario():
+    try:
+        id_funcionario = input("ID do funcionário a atualizar: ")
+        novo_email = input("Novo email (deixe em branco para não alterar): ")
+        novo_status = input("Novo status (Ativo/Inativo, deixe em branco para não alterar): ")
+
+        update_data = {}
+        if novo_email: 
+            if "@" not in novo_email:
+                print("Email inválido! Deve conter @.")
+                return
+            update_data["email"] = novo_email
+        if novo_status:
+            update_data["status"] = novo_status.lower() == "ativo"
+
+        if update_data:
+            resultado = db.Funcionarios.update_one(
+                {"_id": ObjectId(id_funcionario)},
+                {"$set": update_data}
+            )
+            print("Funcionário atualizado!" if resultado.modified_count > 0 else "Nenhuma alteração feita.")
+        else:
+            print("Nenhum campo para atualizar.")
+    except Exception as e:
+        print(f"Erro ao atualizar funcionário: {e}")
+
+def deletar_funcionario():
+    try:
+        id_funcionario = input("ID do funcionário a deletar: ")
+        resultado = db.Funcionarios.delete_one({"_id": ObjectId(id_funcionario)})
+        print("Funcionário deletado!" if resultado.deleted_count > 0 else "Nenhum funcionário encontrado.")
+    except Exception as e:
+        print(f"Erro ao deletar funcionário: {e}")
+
+# Funções CRUD para Ninhada
+def inserir_ninhada():
+    try:
+        data_cobertura = input("Data da cobertura (AAAA-MM-DD): ")
+        # Converter a string para objeto datetime e depois para formato Date do MongoDB
+        data_obj = datetime.strptime(data_cobertura, "%Y-%m-%d")
+        
+        status = input("Status da reprodução: ")
+        coelho_macho = input("ID do coelho macho: ")
+        coelho_femea = input("ID do coelho fêmea: ")
+
+        # Verificar se os coelhos existem
+        if not db.Coelho.find_one({"_id": ObjectId(coelho_macho)}):
+            print("Erro: Coelho macho não encontrado!")
+            return
+        if not db.Coelho.find_one({"_id": ObjectId(coelho_femea)}):
+            print("Erro: Coelho fêmea não encontrado!")
+            return
+
+        ninhada = {
+            "data_cobertura": data_obj,  # Usando o objeto datetime convertido
+            "status_reproducao": status,
+            "coelho_macho": ObjectId(coelho_macho), 
+            "coelho_femea": ObjectId(coelho_femea)
+        }
+        resultado = db.Ninhada.insert_one(ninhada)
+        print(f"Ninhada inserida com ID: {resultado.inserted_id}")
+    except ValueError as ve:
+        if "time data" in str(ve):
+            print("Erro: Formato de data inválido. Use AAAA-MM-DD.")
+        else:
+            print(f"Erro: {ve}")
+    except Exception as e:
+        print(f"Erro ao inserir ninhada: {e}")
+
+def listar_ninhadas():
+    try:
+        ninhadas = db.Ninhada.aggregate([
+            {
+                "$lookup": {
+                    "from": "Coelho",
+                    "localField": "coelho_macho",
+                    "foreignField": "_id",
+                    "as": "macho_info"
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "Coelho",
+                    "localField": "coelho_femea",
+                    "foreignField": "_id",
+                    "as": "femea_info"
+                }
+            },
+            {
+                "$project": {
+                    "_id": 1,  # Inclui o ID da ninhada
+                    "data_cobertura": 1,
+                    "status_reproducao": 1,
+                    "macho_nome": {"$arrayElemAt": ["$macho_info.nome", 0]},
+                    "femea_nome": {"$arrayElemAt": ["$femea_info.nome", 0]},
+                }
+            }
+        ])
+
+        for ninhada in ninhadas:
+            print(
+                f"ID: {ninhada['_id']}\n"
+                f"Data: {ninhada['data_cobertura']}\n"
+                f"Status: {ninhada['status_reproducao']}\n"
+                f"Coelho Macho: {ninhada.get('macho_nome', 'Não encontrado')}\n"
+                f"Coelho Fêmea: {ninhada.get('femea_nome', 'Não encontrado')}\n"
+                "------------------------"
+            )
+    except Exception as e:
+        print(f"Erro ao listar ninhadas: {e}")
+
+def deletar_ninhada():
+    try:
+        id_ninhada = input("ID da ninhada a deletar: ")
+        resultado = db.Ninhada.delete_one({"_id": ObjectId(id_ninhada)})
+        print("Ninhada deletada!" if resultado.deleted_count > 0 else "Nenhuma ninhada encontrada.")
+    except Exception as e:
+        print(f"Erro ao deletar ninhada: {e}")
+
+def menu():
+    while True:
+        print("\n--- MENU CRUD ---")
+        print("1 - Coelho")
+        print("2 - Funcionário")
+        print("3 - Ninhada")
+        print("0 - Sair")
+        opcao = input("Escolha uma opção: ")
+
+        match opcao:
+            case "1":
+                menu_coelho()
+            case "2":
+                menu_funcionario()
+            case "3":
+                menu_ninhada()
+            case "0":
+                print("Saindo...")
+                break
+            case _:
+                print("Opção inválida!")
+
+# Submenus
+def menu_coelho():
+    while True:
+        print("\n--- CRUD Coelho ---")
+        print("1 - Inserir")
+        print("2 - Listar")
+        print("3 - Atualizar")
+        print("4 - Deletar")
+        print("0 - Voltar")
+        opcao = input("Escolha uma opção: ")
+
+        match opcao:
+            case "1":
+                inserir_coelho()
+            case "2":
+                listar_coelhos()
+            case "3":
+                atualizar_coelho()
+            case "4":
+                deletar_coelho()
+            case "0":
+                break
+            case _:
+                print("Opção inválida!")
+
+def menu_funcionario():
+    while True:
+        print("\n--- CRUD Funcionário ---")
+        print("1 - Inserir")
+        print("2 - Listar")
+        print("3 - Atualizar")
+        print("4 - Deletar")
+        print("0 - Voltar")
+        opcao = input("Escolha uma opção: ")
+
+        match opcao:
+            case "1":
+                inserir_funcionario()
+            case "2":
+                listar_funcionarios()
+            case "3":
+                atualizar_funcionario()
+            case "4":
+                deletar_funcionario()
+            case "0":
+                break
+            case _:
+                print("Opção inválida!")
+
+def menu_ninhada():
+    while True:
+        print("\n--- CRUD Ninhada ---")
+        print("1 - Inserir")
+        print("2 - Listar")
+        print("3 - Atualizar")
+        print("4 - Deletar")
+        print("0 - Voltar")
+        opcao = input("Escolha uma opção: ")
+
+        match opcao:
+            case "1":
+                inserir_ninhada()
+            case "2":
+                listar_ninhadas()
+            case "3":
+                atualizar_ninhada()
+            case "4":
+                deletar_ninhada()
+            case "0":
+                break
+            case _:
+                print("Opção inválida!")
+
+# Executar o menu principal
+menu()
+'''
+for colecao, documentos in dados.items():
+   try:
+        db[colecao].insert_many(documentos)
+        print(f"Dados inseridos na colecao '{colecao}' com sucesso!")
+   except Exception as e:
+        print(f"Erro ao inserir dados na colecao '{colecao}': {e}")
+
+print("Processo de inserção concluído.") '''
