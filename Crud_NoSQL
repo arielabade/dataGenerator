@@ -79,14 +79,14 @@ def inserir_funcionario():
         senha = input("Senha: ")
         cargo = input("Cargo: ")
         status = input("Status (Ativo/Inativo): ").lower() == "ativo"
-        id_galpao = input("ID do Galpão associado: ")  # Novo campo obrigatório
+        id_galpao = input("ID do Galpão associado: ")  
         
         funcionario = {
             "email": email, 
             "senha": senha, 
             "cargo": cargo, 
             "status": status,
-            "id_galpao": ObjectId(id_galpao)  # Incluindo o campo obrigatório
+            "id_galpao": ObjectId(id_galpao) 
         }
         resultado = db.Funcionarios.insert_one(funcionario)
         print(f"Funcionário inserido com ID: {resultado.inserted_id}")
@@ -139,14 +139,12 @@ def deletar_funcionario():
 def inserir_ninhada():
     try:
         data_cobertura = input("Data da cobertura (AAAA-MM-DD): ")
-        # Converter a string para objeto datetime e depois para formato Date do MongoDB
         data_obj = datetime.strptime(data_cobertura, "%Y-%m-%d")
         
         status = input("Status da reprodução: ")
         coelho_macho = input("ID do coelho macho: ")
         coelho_femea = input("ID do coelho fêmea: ")
 
-        # Verificar se os coelhos existem
         if not db.Coelho.find_one({"_id": ObjectId(coelho_macho)}):
             print("Erro: Coelho macho não encontrado!")
             return
@@ -169,6 +167,19 @@ def inserir_ninhada():
             print(f"Erro: {ve}")
     except Exception as e:
         print(f"Erro ao inserir ninhada: {e}")
+
+def atualizar_ninhada():
+    try:
+        id_ninhada = input("ID da ninhada a atualizar: ")
+        novo_status = input("Novo status da reprodução: ")
+        
+        resultado = db.Ninhada.update_one(
+            {"_id": ObjectId(id_ninhada)}, 
+            {"$set": {"status_reproducao": novo_status}}
+        )
+        print("Ninhada atualizada!" if resultado.modified_count > 0 else "Nenhuma alteração feita.")
+    except Exception as e:
+        print(f"Erro ao atualizar ninhada: {e}")
 
 def listar_ninhadas():
     try:
@@ -314,15 +325,4 @@ def menu_ninhada():
                 break
             case _:
                 print("Opção inválida!")
-
-# Executar o menu principal
 menu()
-'''
-for colecao, documentos in dados.items():
-   try:
-        db[colecao].insert_many(documentos)
-        print(f"Dados inseridos na colecao '{colecao}' com sucesso!")
-   except Exception as e:
-        print(f"Erro ao inserir dados na colecao '{colecao}': {e}")
-
-print("Processo de inserção concluído.") '''
