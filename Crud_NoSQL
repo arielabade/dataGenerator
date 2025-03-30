@@ -153,7 +153,7 @@ def inserir_ninhada():
             return
 
         ninhada = {
-            "data_cobertura": data_obj,  # Usando o objeto datetime convertido
+            "data_cobertura": data_obj,  
             "status_reproducao": status,
             "coelho_macho": ObjectId(coelho_macho), 
             "coelho_femea": ObjectId(coelho_femea)
@@ -202,7 +202,7 @@ def listar_ninhadas():
             },
             {
                 "$project": {
-                    "_id": 1,  # Inclui o ID da ninhada
+                    "_id": 1,  
                     "data_cobertura": 1,
                     "status_reproducao": 1,
                     "macho_nome": {"$arrayElemAt": ["$macho_info.nome", 0]},
