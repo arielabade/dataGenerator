@@ -1,0 +1,99 @@
+from flask import Flask, request, jsonify
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)
+
+DB_HOST = "banco-relacional.cnbawjnqiqv4.us-east-1.rds.amazonaws.com"
+DB_NAME = "postgres"
+DB_USER = "postgres"
+DB_PASSWORD = "Total12**"
+DB_PORT = "5432"
+
+def get_db_connection():
+    conn = psycopg2.connect(
+        host=DB_HOST,
+        database=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        port=DB_PORT
+    )
+    return conn
+
+def execute_query(query, params=None, fetch=False):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(query, params or ())
+    result = cur.fetchall() if fetch else None
+    conn.commit()
+    cur.close()
+    conn.close()
+    return result
+
+### CRUD para Coelho ###
+@app.route('/coelho', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def crud_coelho():
+    if request.method == 'GET':  
+        return jsonify(execute_query("SELECT * FROM mydb.coelho", fetch=True))
+    
+    data = request.json
+    if request.method == 'POST':  
+        execute_query("INSERT INTO mydb.coelho (idade, nome, genero, raca, filiacao) VALUES (%s, %s, %s, %s, %s)",
+                      (data['idade'], data['nome'], data['genero'], data['raca'], data['filiacao']))
+        return jsonify({"message": "Coelho inserido com sucesso"}), 201
+
+    if request.method == 'PUT':  
+        execute_query("UPDATE mydb.coelho SET idade=%s, nome=%s, genero=%s, raca=%s, filiacao=%s WHERE id_coelho=%s",
+                      (data['idade'], data['nome'], data['genero'], data['raca'], data['filiacao'], data['id_coelho']))
+        return jsonify({"message": "Coelho atualizado com sucesso"})
+
+    if request.method == 'DELETE':  
+        execute_query("DELETE FROM mydb.coelho WHERE id_coelho=%s", (data['id_coelho'],))
+        return jsonify({"message": "Coelho deletado com sucesso"})
+
+### CRUD para Ninhada ###
+@app.route('/ninhada', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def crud_ninhada():
+    if request.method == 'GET':  
+        return jsonify(execute_query("SELECT * FROM mydb.ninhada", fetch=True))
+    
+    data = request.json
+    if request.method == 'POST':  
+        execute_query("INSERT INTO mydb.ninhada (data_cobertura, status_reproducao) VALUES (%s, %s)",
+                      (data['data_cobertura'], data['status_reproducao']))
+        return jsonify({"message": "Ninhada inserida com sucesso"}), 201
+
+    if request.method == 'PUT':  
+        execute_query("UPDATE mydb.ninhada SET data_cobertura=%s, status_reproducao=%s WHERE id_ninhada=%s",
+                      (data['data_cobertura'], data['status_reproducao'], data['id_ninhada']))
+        return jsonify({"message": "Ninhada atualizada com sucesso"})
+
+    if request.method == 'DELETE':  
+        execute_query("DELETE FROM mydb.ninhada WHERE id_ninhada=%s", (data['id_ninhada'],))
+        return jsonify({"message": "Ninhada deletada com sucesso"})
+
+### CRUD para Funcionário ###
+@app.route('/funcionario', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def crud_funcionario():
+    if request.method == 'GET':  
+        return jsonify(execute_query("SELECT * FROM mydb.funcionarios", fetch=True))
+    
+    data = request.json
+    if request.method == 'POST':  
+        execute_query("INSERT INTO mydb.funcionarios (email, senha, cargo, status, id_galpao) VALUES (%s, %s, %s, %s, %s)",
+                      (data['email'], data['senha'], data['cargo'], data['status'], data['id_galpao']))
+        return jsonify({"message": "Funcionário inserido com sucesso"}), 201
+
+    if request.method == 'PUT':  
+        execute_query("UPDATE mydb.funcionarios SET email=%s, senha=%s, cargo=%s, status=%s, id_galpao=%s WHERE id_funcionario=%s",
+                      (data['email'], data['senha'], data['cargo'], data['status'], data['id_galpao'], data['id_funcionario']))
+        return jsonify({"message": "Funcionário atualizado com sucesso"})
+
+    if request.method == 'DELETE':  
+        execute_query("DELETE FROM mydb.funcionarios WHERE id_funcionario=%s", (data['id_funcionario'],))
+        return jsonify({"message": "Funcionário deletado com sucesso"})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
